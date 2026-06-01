@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fodbold Engelsk ⚽</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #040f04; }
+    @keyframes floatY { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-16px) rotate(5deg)} }
+    @keyframes popIn { 0%{opacity:0;transform:scale(.4) rotate(-6deg)} 70%{transform:scale(1.08)} 100%{opacity:1;transform:scale(1) rotate(0)} }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-9px)} 75%{transform:translateX(9px)} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes goalBurst { 0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-10deg)} 50%{opacity:1;transform:translate(-50%,-50%) scale(1.2) rotate(3deg)} 80%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) scale(1.1) translateY(-40px)} }
+    @keyframes confettiFall { from{transform:translateY(-10px) rotate(0deg);opacity:1} to{transform:translateY(95vh) rotate(720deg);opacity:0} }
+    @keyframes floodPulse { 0%,100%{opacity:.6} 50%{opacity:1} }
+    @keyframes correctPop { 0%{transform:scale(1)} 50%{transform:scale(1.12)} 100%{transform:scale(1)} }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+
+    const CONFETTI_COLORS = ["#22c55e","#fbbf24","#ef4444","#3b82f6","#ffffff","#f97316","#8b5cf6"];
+    const LIGHTS = [{ left:"-8%",top:"-8%",size:500 },{ left:"108%",top:"-8%",size:500 },{ left:"50%",top:"-5%",size:400 }];
+
+    const WORD_PAIRS = [
+      { da:"bold",   en:"ball",  e:"⚽" },
+      { da:"mål",    en:"goal",  e:"🥅" },
+      { da:"løb",    en:"run",   e:"🏃" },
+      { da:"hold",   en:"team",  e:"👥" },
+      { da:"spark",  en:"kick",  e:"🦵" },
+      { da:"sejr",   en:"win",   e:"🏆" },
+      { da:"træner", en:"coach", e:"👨‍💼" },
+      { da:"bane",   en:"pitch", e:"🟩" },
+    ];
+
+    const STORY = {
+      title: "The Last Minute Goal",
+      emoji: "⚽",
+      text: "It was the last minute of the big match. The score was 1-1. Everyone was nervous.\n\nTom got the ball on the right wing. He ran fast past two players. His friend Jack was free in the middle. Tom passed the ball perfectly to him.\n\nJack hit a powerful shot. The goalkeeper dived but couldn't reach it. GOAL! The crowd went absolutely crazy. Jack jumped up and shouted \"YES!\" at the top of his voice.\n\nHis team had won the cup. It was the best moment of his life!",
+      qs: [
+        { q:"What was the score when Tom got the ball?", opts:["0–0","2–1","1–1","3–2"], a:2 },
+        { q:"Where did Tom get the ball?",              opts:["In the goal","On the right wing","Near the coach","In the middle"], a:1 },
+        { q:"What did the goalkeeper do?",              opts:["Caught the ball","Scored a goal","Dived but missed","Ran away"], a:2 },
+        { q:"What did the team win?",                   opts:["A medal 🥇","The cup 🏆","A new ball ⚽","A trophy 🥈"], a:1 },
+      ],
+    };
+
+    const SPELLING_WORDS = [
+      { da:"Hjørne",  en:"corner",  hint:"🚩" },
+      { da:"Dommer",  en:"referee", hint:"🟨" },
+      { da:"Skud",    en:"shot",    hint:"💥" },
+      { da:"Forsvar", en:"defence", hint:"🛡️" },
+      { da:"Anfører", en:"captain", hint:"🎖️" },
+      { da:"Sejr",    en:"victory", hint:"🏆" },
+    ];
+
+    const GAMES = [
+      { id:"wordmatch", name:"Ord-Aflevering", desc:"Match dansk og engelsk!",  emoji:"🔤", bg:"linear-gradient(135deg,#15803d,#16a34a)", xp:80  },
+      { id:"story",     name:"Kamprapport",    desc:"Læs og forstå historien!", emoji:"📰", bg:"linear-gradient(135deg,#b45309,#d97706)", xp:60  },
+      { id:"spelling",  name:"Målspark",       desc:"Stav rigtigt og score!",   emoji:"⚽", bg:"linear-gradient(135deg,#1d4ed8,#2563eb)", xp:120 },
+    ];
+
+    function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+    function getLevel(xp) {
+      if (xp >= 220) return { name:"Fodboldlegende 🏆", next:260, color:"#fbbf24" };
+      if (xp >= 140) return { name:"Holdkaptajn 🎖️",   next:220, color:"#22c55e" };
+      if (xp >= 60)  return { name:"Startspiller ⚽",   next:140, color:"#3b82f6" };
+      return { name:"Reservespiller 🪑", next:60, color:"#94a3b8" };
+    }
+
+    /* ── STADIUM BACKGROUND ── */
+    function StadiumBg() {
+      return (
+        <div style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:0, overflow:"hidden" }}>
+          <div style={{ position:"absolute", inset:0, backgroundImage:"repeating-linear-gradient(0deg, rgba(34,197,94,.04) 0, rgba(34,197,94,.04) 70px, transparent 70px, transparent 140px)" }} />
+          {LIGHTS.map((l,i) => (
+            <div key={i} style={{ position:"absolute", left:l.left, top:l.top, width:l.size, height:l.size, borderRadius:"50%", background:"radial-gradient(circle, rgba(255,255,220,.07) 0%, transparent 65%)", transform:"translate(-50%,-50%)", animation:`floodPulse ${3+i*.8}s ${i*.6}s ease-in-out infinite` }} />
+          ))}
+        </div>
+      );
+    }
+
+    /* ── XP BAR ── */
+    function XPBar({ xp }) {
+      const lvl = getLevel(xp);
+      const base = xp>=220?220 : xp>=140?140 : xp>=60?60 : 0;
+      const pct  = Math.min(((xp-base)/(lvl.next-base))*100, 100);
+      return (
+        <div style={{ width:"100%", marginBottom:18 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:7, fontSize:13, fontWeight:900, color:"rgba(255,255,255,.75)" }}>
+            <span>{lvl.name}</span>
+            <span style={{ color:"#fbbf24" }}>⚽ {xp} pts</span>
+          </div>
+          <div style={{ background:"rgba(255,255,255,.08)", borderRadius:50, height:15, border:"1px solid rgba(255,255,255,.12)", overflow:"hidden" }}>
+            <div style={{ height:"100%", borderRadius:50, width:`${pct}%`, background:`linear-gradient(90deg,${lvl.color},#fbbf24)`, transition:"width .8s ease", position:"relative" }}>
+              <div style={{ position:"absolute", inset:"3px 3px 3px", borderRadius:50, background:"linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent)" }} />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ── BUTTON ── */
+    function Btn({ children, onClick, variant="primary", style:s={}, disabled }) {
+      const v = {
+        primary: { background:"linear-gradient(135deg,#15803d,#22c55e)", boxShadow:"0 4px 20px rgba(34,197,94,.45)",  color:"white"  },
+        gold:    { background:"linear-gradient(135deg,#b45309,#fbbf24)", boxShadow:"0 4px 20px rgba(251,191,36,.45)", color:"#1a1a1a"},
+        ghost:   { background:"rgba(255,255,255,.07)", border:"1.5px solid rgba(255,255,255,.18)", color:"white" },
+        blue:    { background:"linear-gradient(135deg,#1d4ed8,#3b82f6)", boxShadow:"0 4px 20px rgba(59,130,246,.45)", color:"white"  },
+      };
+      return (
+        <button
+          onClick={disabled ? undefined : onClick}
+          onMouseEnter={e => { if(!disabled) e.currentTarget.style.transform="translateY(-2px) scale(1.03)"; }}
+          onMouseLeave={e => { e.currentTarget.style.transform=""; }}
+          onMouseDown={e  => { if(!disabled) e.currentTarget.style.transform="scale(.96)"; }}
+          onMouseUp={e    => { if(!disabled) e.currentTarget.style.transform=""; }}
+          style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", gap:8, padding:"13px 28px", borderRadius:12, border:"none", cursor:disabled?"not-allowed":"pointer", fontFamily:"'Nunito',sans-serif", fontSize:17, fontWeight:900, transition:"transform .15s, opacity .15s", opacity:disabled?.45:1, ...v[variant], ...s }}>
+          {children}
+        </button>
+      );
+    }
+
+    /* ── CARD ── */
+    function Card({ children, style:s={}, anim=true }) {
+      return (
+        <div style={{ background:"rgba(255,255,255,.06)", backdropFilter:"blur(18px)", border:"1px solid rgba(255,255,255,.11)", borderRadius:20, padding:"24px 22px", width:"100%", animation:anim?"popIn .4s ease-out":undefined, ...s }}>
+          {children}
+        </div>
+      );
+    }
+
+    /* ── GOAL FLASH ── */
+    function GoalFlash({ msg }) {
+      return (
+        <div style={{ position:"fixed", top:"44%", left:"50%", fontFamily:"'Bebas Neue',cursive", fontSize:72, color:"#fbbf24", textShadow:"0 0 30px rgba(251,191,36,.8), 0 4px 0 rgba(0,0,0,.5)", pointerEvents:"none", zIndex:999, whiteSpace:"nowrap", animation:"goalBurst 1.4s ease forwards" }}>
+          {msg}
+        </div>
+      );
+    }
+
+    /* ── CONFETTI ── */
+    function Confetti() {
+      const pieces = Array.from({ length:45 }, (_,i) => ({ id:i, left:`${Math.random()*100}%`, color:CONFETTI_COLORS[i%CONFETTI_COLORS.length], size:Math.random()*12+6, delay:Math.random()*2, dur:Math.random()*2+2, round:Math.random()>.5 }));
+      return (
+        <div style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:50 }}>
+          {pieces.map(p => <div key={p.id} style={{ position:"absolute", left:p.left, top:-10, width:p.size, height:p.size, background:p.color, borderRadius:p.round?"50%":3, animation:`confettiFall ${p.dur}s ${p.delay}s ease-in forwards` }} />)}
+        </div>
+      );
+    }
+
+    /* ── HOME SCREEN ── */
+    function HomeScreen({ onStart }) {
+      return (
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:24, textAlign:"center" }}>
+          <div style={{ fontSize:96, lineHeight:1, animation:"floatY 2.5s ease-in-out infinite" }}>⚽</div>
+          <div>
+            <h1 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:62, letterSpacing:3, background:"linear-gradient(135deg,#fbbf24,#f97316,#22c55e)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", lineHeight:1, marginBottom:6 }}>Fodbold Engelsk</h1>
+            <p style={{ color:"rgba(255,255,255,.6)", fontSize:17, fontWeight:800 }}>Lær engelsk – ligesom en pro! 🏆</p>
+          </div>
+          <Card style={{ maxWidth:420 }}>
+            <div style={{ fontSize:38, marginBottom:12 }}>👋</div>
+            <p style={{ fontSize:17, fontWeight:900, marginBottom:8 }}>Hej, mester!</p>
+            <p style={{ color:"rgba(255,255,255,.65)", fontSize:15, lineHeight:1.65, marginBottom:20 }}>
+              Brug din boldteknik til at lære engelske ord og sætninger. Gennemfør missioner, score point og bliv en ægte fodboldlegende!
+            </p>
+            <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginBottom:22 }}>
+              {["🔤 Ord-Match","📰 Historier","⚽ Stav & Score"].map(tag => (
+                <span key={tag} style={{ background:"rgba(34,197,94,.2)", border:"1px solid rgba(34,197,94,.4)", borderRadius:8, padding:"5px 13px", fontSize:13, fontWeight:900, color:"#86efac" }}>{tag}</span>
+              ))}
+            </div>
+            <Btn onClick={onStart} variant="gold" style={{ width:"100%", fontSize:20, padding:"15px" }}>⚽ Spark i gang!</Btn>
+          </Card>
+          <div style={{ background:"rgba(0,0,0,.6)", border:"2px solid rgba(255,255,255,.1)", borderRadius:12, padding:"10px 20px", display:"flex", gap:20, fontSize:13, fontWeight:900, color:"rgba(255,255,255,.5)" }}>
+            <span>🔤 80 pts</span><span style={{ color:"rgba(255,255,255,.2)" }}>|</span>
+            <span>📰 60 pts</span><span style={{ color:"rgba(255,255,255,.2)" }}>|</span>
+            <span>⚽ 120 pts</span>
+          </div>
+        </div>
+      );
+    }
+
+    /* ── MAP SCREEN ── */
+    function MapScreen({ xp, completed, onSelect, onHome }) {
+      return (
+        <div style={{ width:"100%" }}>
+          <XPBar xp={xp} />
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
+            <h2 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:32, letterSpacing:2, color:"#86efac" }}>🗂️ Banevalg</h2>
+            <button onClick={onHome} style={{ background:"none", border:"none", color:"rgba(255,255,255,.4)", cursor:"pointer", fontSize:13, fontWeight:900 }}>← Hjem</button>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+            {GAMES.map((g,i) => {
+              const done = completed.has(g.id);
+              return (
+                <div key={g.id} onClick={() => onSelect(g.id)}
+                  onMouseEnter={e => { e.currentTarget.style.transform="translateY(-4px) scale(1.03)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform=""; }}
+                  style={{ background:g.bg, borderRadius:18, padding:"22px 14px", textAlign:"center", cursor:"pointer", border:done?"2px solid #22c55e":"2px solid transparent", position:"relative", transition:"transform .2s, box-shadow .2s", boxShadow:done?"0 0 24px rgba(34,197,94,.3)":"0 6px 24px rgba(0,0,0,.5)", animation:`popIn ${.3+i*.1}s ease-out` }}>
+                  {done && <div style={{ position:"absolute", top:-10, right:-10, background:"#22c55e", borderRadius:"50%", width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:900, border:"2px solid #040f04" }}>✓</div>}
+                  <div style={{ fontSize:46, marginBottom:8, animation:done?undefined:`floatY ${2.2+i*.6}s ease-in-out infinite` }}>{g.emoji}</div>
+                  <div style={{ fontFamily:"'Bebas Neue',cursive", letterSpacing:1.5, fontSize:19, color:"white", marginBottom:5 }}>{g.name}</div>
+                  <div style={{ fontSize:12, color:"rgba(255,255,255,.8)", marginBottom:12, lineHeight:1.4, fontWeight:700 }}>{g.desc}</div>
+                  <div style={{ background:"rgba(0,0,0,.3)", borderRadius:8, padding:"4px 12px", display:"inline-block", fontSize:13, fontWeight:900, color:"#fbbf24" }}>+{g.xp} pts</div>
+                </div>
+              );
+            })}
+            <div style={{ background:"rgba(255,255,255,.03)", border:"2px dashed rgba(255,255,255,.12)", borderRadius:18, padding:"22px 14px", textAlign:"center", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:8 }}>
+              <div style={{ fontSize:40 }}>🔒</div>
+              <div style={{ fontFamily:"'Bebas Neue',cursive", fontSize:16, color:"rgba(255,255,255,.3)" }}>Næste kamp</div>
+              <div style={{ fontSize:12, color:"rgba(255,255,255,.2)", fontWeight:700 }}>Kommer snart!</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ── WORD MATCH ── */
+    function WordMatchGame({ onComplete }) {
+      const pairs = WORD_PAIRS.slice(0, 6);
+      const [daSelected, setDaSelected] = useState(null);
+      const [enSelected, setEnSelected] = useState(null);
+      const [matched,    setMatched]    = useState(new Set());
+      const [wrongAnim,  setWrongAnim]  = useState(false);
+      const [feedback,   setFeedback]   = useState(null);
+      const [enWords]   = useState(() => shuffle(pairs.map(p => ({ en:p.en, da:p.da }))));
+
+      useEffect(() => {
+        if (daSelected !== null && enSelected !== null) {
+          const ok = pairs[daSelected].en === enWords[enSelected].en;
+          if (ok) {
+            const next = new Set([...matched, daSelected+"_da", enSelected+"_en"]);
+            setMatched(next);
+            setFeedback("MÅL! ⚽");
+            setTimeout(() => setFeedback(null), 1300);
+            if (next.size/2 === pairs.length) setTimeout(() => onComplete(pairs.length*13), 700);
+          } else {
+            setWrongAnim(true);
+            setFeedback("Offside! ❌");
+            setTimeout(() => { setWrongAnim(false); setFeedback(null); }, 750);
+          }
+          setTimeout(() => { setDaSelected(null); setEnSelected(null); }, 320);
+        }
+      }, [daSelected, enSelected]);
+
+      const matchedCount = matched.size/2;
+      return (
+        <div style={{ width:"100%" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+            <h2 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:28, letterSpacing:2, color:"#86efac" }}>🔤 Ord-Aflevering</h2>
+            <div style={{ background:"rgba(34,197,94,.2)", border:"1px solid rgba(34,197,94,.4)", borderRadius:8, padding:"6px 14px", fontWeight:900, fontSize:14, color:"#86efac" }}>{matchedCount}/{pairs.length} ✓</div>
+          </div>
+          <p style={{ color:"rgba(255,255,255,.5)", fontSize:14, marginBottom:16, fontWeight:700 }}>Klik på et dansk ord og det engelske der passer! 👆</p>
+          {feedback && <GoalFlash msg={feedback} />}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              <div style={{ textAlign:"center", fontSize:11, fontWeight:900, color:"rgba(255,255,255,.35)", marginBottom:4, textTransform:"uppercase", letterSpacing:1.5 }}>🇩🇰 Dansk</div>
+              {pairs.map((p,i) => {
+                const isDone=matched.has(i+"_da"), isSel=daSelected===i;
+                return <div key={i} onClick={() => { if(!isDone) setDaSelected(i===daSelected?null:i); }} style={{ padding:"12px 10px", borderRadius:12, textAlign:"center", fontSize:15, fontWeight:800, cursor:isDone?"default":"pointer", border:isSel?"2px solid #22c55e":isDone?"2px solid rgba(34,197,94,.4)":"2px solid rgba(255,255,255,.12)", background:isSel?"rgba(34,197,94,.3)":isDone?"rgba(34,197,94,.15)":"rgba(255,255,255,.05)", transform:isSel?"scale(1.05)":"scale(1)", opacity:isDone?.45:1, transition:"all .18s", animation:wrongAnim&&isSel?"shake .4s":undefined }}>{p.e} {p.da}</div>;
+              })}
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              <div style={{ textAlign:"center", fontSize:11, fontWeight:900, color:"rgba(255,255,255,.35)", marginBottom:4, textTransform:"uppercase", letterSpacing:1.5 }}>🇬🇧 English</div>
+              {enWords.map((w,i) => {
+                const isDone=matched.has(i+"_en"), isSel=enSelected===i;
+                return <div key={i} onClick={() => { if(!isDone) setEnSelected(i===enSelected?null:i); }} style={{ padding:"12px 10px", borderRadius:12, textAlign:"center", fontSize:15, fontWeight:800, cursor:isDone?"default":"pointer", border:isSel?"2px solid #fbbf24":isDone?"2px solid rgba(34,197,94,.4)":"2px solid rgba(255,255,255,.12)", background:isSel?"rgba(251,191,36,.25)":isDone?"rgba(34,197,94,.15)":"rgba(255,255,255,.05)", transform:isSel?"scale(1.05)":"scale(1)", opacity:isDone?.45:1, transition:"all .18s" }}>{w.en}</div>;
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ── STORY GAME ── */
+    function StoryGame({ onComplete }) {
+      const [phase,    setPhase]    = useState("read");
+      const [qIdx,     setQIdx]     = useState(0);
+      const [answered, setAnswered] = useState(null);
+      const [score,    setScore]    = useState(0);
+      const [feedback, setFeedback] = useState(null);
+
+      const handleAnswer = (idx) => {
+        if (answered !== null) return;
+        setAnswered(idx);
+        const correct = idx === STORY.qs[qIdx].a;
+        const ns = score + (correct?1:0);
+        setFeedback(correct ? "KORREKT! 🎯" : "Ikke helt! 💪");
+        setTimeout(() => {
+          setFeedback(null);
+          if (qIdx+1 < STORY.qs.length) { setQIdx(q=>q+1); setAnswered(null); if(correct) setScore(ns); }
+          else { if(correct) setScore(ns); setTimeout(() => onComplete(ns*15), 800); }
+        }, 1500);
+      };
+
+      return (
+        <div style={{ width:"100%" }}>
+          <h2 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:28, letterSpacing:2, color:"#fcd34d", marginBottom:16 }}>📰 Kamprapport</h2>
+          {feedback && <GoalFlash msg={feedback} />}
+          {phase === "read" ? (
+            <div style={{ animation:"fadeUp .4s ease" }}>
+              <Card>
+                <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
+                  <span style={{ fontSize:36 }}>{STORY.emoji}</span>
+                  <h3 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:24, letterSpacing:1.5, color:"#fcd34d" }}>{STORY.title}</h3>
+                </div>
+                <div style={{ background:"rgba(0,0,0,.4)", borderRadius:12, padding:"16px 18px", borderLeft:"4px solid #22c55e", marginBottom:18 }}>
+                  {STORY.text.split("\n\n").map((para,i) => <p key={i} style={{ fontSize:15, lineHeight:1.9, color:"rgba(255,255,255,.88)", marginBottom:i<3?14:0, fontWeight:600 }}>{para}</p>)}
+                </div>
+                <Btn onClick={() => setPhase("quiz")} variant="primary" style={{ width:"100%" }}>Svar på spørgsmål 💬</Btn>
+              </Card>
+            </div>
+          ) : (
+            <div key={qIdx} style={{ animation:"popIn .35s ease" }}>
+              <div style={{ background:"rgba(0,0,0,.6)", borderRadius:10, padding:"8px 16px", display:"flex", justifyContent:"space-between", marginBottom:16, fontSize:13, fontWeight:900 }}>
+                <span style={{ color:"rgba(255,255,255,.5)" }}>Spørgsmål {qIdx+1}/{STORY.qs.length}</span>
+                <span style={{ color:"#fbbf24" }}>⚽ {score*15} pts</span>
+              </div>
+              <Card>
+                <p style={{ fontSize:17, fontWeight:900, marginBottom:20, lineHeight:1.55 }}>🤔 {STORY.qs[qIdx].q}</p>
+                {STORY.qs[qIdx].opts.map((opt,i) => {
+                  let bg="rgba(255,255,255,.05)", border="rgba(255,255,255,.12)";
+                  if (answered !== null) {
+                    if (i===STORY.qs[qIdx].a)             { bg="rgba(34,197,94,.3)";  border="#22c55e"; }
+                    else if (i===answered)                  { bg="rgba(239,68,68,.25)"; border="#ef4444"; }
+                  }
+                  return <button key={i} onClick={() => handleAnswer(i)} disabled={answered!==null} style={{ display:"block", width:"100%", padding:"13px 16px", margin:"8px 0", borderRadius:12, border:`2px solid ${border}`, background:bg, color:"white", fontFamily:"'Nunito',sans-serif", fontSize:15, fontWeight:800, cursor:answered!==null?"default":"pointer", textAlign:"left", transition:"all .2s", animation:answered!==null&&i===STORY.qs[qIdx].a?"correctPop .4s ease":undefined }}>{opt}</button>;
+                })}
+              </Card>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    /* ── SPELLING ── */
+    function SpellingGame({ onComplete }) {
+      const [idx,      setIdx]      = useState(0);
+      const [input,    setInput]    = useState("");
+      const [status,   setStatus]   = useState(null);
+      const [score,    setScore]    = useState(0);
+      const [feedback, setFeedback] = useState(null);
+      const [attempts, setAttempts] = useState(0);
+      const [goals,    setGoals]    = useState(0);
+      const word = SPELLING_WORDS[idx];
+
+      const check = () => {
+        if (!input.trim()) return;
+        const ok = input.trim().toLowerCase() === word.en.toLowerCase();
+        setStatus(ok ? "correct" : "wrong");
+        if (ok) {
+          const pts = attempts===0?20:10, ns=score+pts, ng=goals+1;
+          setScore(ns); setGoals(ng);
+          setFeedback("MÅL! ⚽");
+          setTimeout(() => {
+            setFeedback(null);
+            if (idx+1 < SPELLING_WORDS.length) { setIdx(i=>i+1); setInput(""); setStatus(null); setAttempts(0); }
+            else setTimeout(() => onComplete(ns), 500);
+          }, 1000);
+        } else {
+          setAttempts(a=>a+1);
+          setFeedback("Prøv igen! 💪");
+          setTimeout(() => { setStatus(null); setInput(""); setFeedback(null); }, 1100);
+        }
+      };
+
+      return (
+        <div style={{ width:"100%" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+            <h2 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:28, letterSpacing:2, color:"#93c5fd" }}>⚽ MÅLSPARK</h2>
+            <div style={{ background:"rgba(59,130,246,.2)", border:"1px solid rgba(59,130,246,.4)", borderRadius:8, padding:"6px 14px", fontWeight:900, fontSize:13, color:"#93c5fd" }}>{idx+1}/{SPELLING_WORDS.length}</div>
+          </div>
+          {feedback && <GoalFlash msg={feedback} />}
+          <div style={{ display:"flex", gap:6, marginBottom:18, justifyContent:"center" }}>
+            {SPELLING_WORDS.map((_,i) => <div key={i} style={{ fontSize:20, filter:i<goals?"none":"grayscale(1) opacity(.3)", transition:"filter .3s" }}>⚽</div>)}
+          </div>
+          <div key={idx} style={{ animation:"popIn .35s ease" }}>
+            <Card style={{ textAlign:"center" }}>
+              <div style={{ fontSize:70, marginBottom:10, animation:"floatY 2.2s ease-in-out infinite" }}>{word.hint}</div>
+              <div style={{ background:"rgba(0,0,0,.5)", borderRadius:12, padding:"14px 20px", marginBottom:20, border:"1px solid rgba(255,255,255,.1)" }}>
+                <div style={{ fontSize:11, fontWeight:900, color:"rgba(255,255,255,.35)", textTransform:"uppercase", letterSpacing:2, marginBottom:6 }}>🇩🇰 Dansk ord</div>
+                <div style={{ fontFamily:"'Bebas Neue',cursive", fontSize:42, letterSpacing:3, color:"white" }}>{word.da}</div>
+              </div>
+              <p style={{ color:"rgba(255,255,255,.55)", fontSize:14, fontWeight:800, marginBottom:14 }}>Hvad er det på engelsk? 🇬🇧</p>
+              <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key==="Enter"&&check()} placeholder="Skriv her..." autoFocus
+                style={{ width:"100%", padding:"15px 20px", borderRadius:12, fontSize:22, fontWeight:900, textAlign:"center", fontFamily:"'Nunito',sans-serif", outline:"none", background:status==="correct"?"rgba(34,197,94,.2)":status==="wrong"?"rgba(239,68,68,.15)":"rgba(255,255,255,.08)", border:`2px solid ${status==="correct"?"#22c55e":status==="wrong"?"#ef4444":"rgba(255,255,255,.2)"}`, color:"white", marginBottom:16, animation:status==="wrong"?"shake .4s":undefined, transition:"border-color .2s, background .2s" }} />
+              <Btn onClick={check} variant="blue" style={{ width:"100%", fontSize:18 }} disabled={!input.trim()||status==="correct"}>Spark! ⚽</Btn>
+              {attempts>0 && status===null && (
+                <div style={{ marginTop:14, background:"rgba(251,191,36,.1)", border:"1px solid rgba(251,191,36,.25)", borderRadius:10, padding:"10px 14px" }}>
+                  <p style={{ color:"#fcd34d", fontSize:13, fontWeight:800 }}>💡 Hint: Starter med "{word.en[0].toUpperCase()}" — {word.en.length} bogstaver</p>
+                </div>
+              )}
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
+    /* ── RESULTS ── */
+    function ResultsScreen({ xp, onContinue }) {
+      const lvl = getLevel(xp);
+      return (
+        <div style={{ textAlign:"center", width:"100%", animation:"popIn .5s ease" }}>
+          <Confetti />
+          <div style={{ fontSize:88, animation:"floatY 2s ease-in-out infinite", marginBottom:12 }}>🏆</div>
+          <h1 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:52, letterSpacing:3, background:"linear-gradient(135deg,#fbbf24,#f97316,#22c55e)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:8 }}>FULD TID!</h1>
+          <p style={{ color:"rgba(255,255,255,.65)", fontSize:17, fontWeight:800, marginBottom:24 }}>Du vandt kampen! 🎉</p>
+          <Card style={{ maxWidth:380, margin:"0 auto 22px" }}>
+            <div style={{ background:"rgba(0,0,0,.5)", borderRadius:12, padding:"14px 20px", marginBottom:18, border:"1px solid rgba(255,255,255,.1)" }}>
+              <div style={{ fontSize:11, fontWeight:900, color:"rgba(255,255,255,.4)", textTransform:"uppercase", letterSpacing:2, marginBottom:4 }}>Slutresultat</div>
+              <div style={{ fontFamily:"'Bebas Neue',cursive", fontSize:50, letterSpacing:3, color:"#fbbf24" }}>{xp} pts</div>
+              <div style={{ color:"rgba(255,255,255,.55)", fontSize:14, fontWeight:700 }}>{lvl.name}</div>
+            </div>
+            <XPBar xp={xp} />
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginTop:16 }}>
+              {GAMES.map(g => (
+                <div key={g.id} style={{ background:"rgba(255,255,255,.05)", borderRadius:12, padding:"12px 8px", textAlign:"center", border:"1px solid rgba(34,197,94,.25)" }}>
+                  <div style={{ fontSize:28 }}>{g.emoji}</div>
+                  <div style={{ fontSize:11, fontWeight:900, color:"#86efac", marginTop:5 }}>✓ Done</div>
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Btn onClick={onContinue} variant="gold" style={{ fontSize:18, padding:"15px 36px" }}>🔄 Ny kamp!</Btn>
+        </div>
+      );
+    }
+
+    /* ── ROOT APP ── */
+    function App() {
+      const [screen,    setScreen]    = useState("home");
+      const [xp,        setXp]        = useState(0);
+      const [completed, setCompleted] = useState(new Set());
+
+      const handleComplete = useCallback((game, earned) => {
+        setXp(prev => prev + earned);
+        setCompleted(prev => new Set([...prev, game]));
+        setScreen("map");
+      }, []);
+
+      const handleRestart = () => { setXp(0); setCompleted(new Set()); setScreen("home"); };
+
+      return (
+        <div style={{ minHeight:"100vh", background:"linear-gradient(160deg,#040f04 0%,#071a07 40%,#0d2b0d 100%)", fontFamily:"'Nunito',sans-serif", color:"white", position:"relative", overflowX:"hidden" }}>
+          <StadiumBg />
+          <div style={{ position:"relative", zIndex:1, maxWidth:560, margin:"0 auto", padding:"28px 18px", minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+            {screen === "home" && <HomeScreen onStart={() => setScreen("map")} />}
+            {screen === "map"  && (
+              completed.size === GAMES.length
+                ? <ResultsScreen xp={xp} onContinue={handleRestart} />
+                : <MapScreen xp={xp} completed={completed} onSelect={id => setScreen(id)} onHome={() => setScreen("home")} />
+            )}
+            {["wordmatch","story","spelling"].includes(screen) && (
+              <div style={{ width:"100%" }}>
+                <XPBar xp={xp} />
+                {screen==="wordmatch" && <WordMatchGame onComplete={e => handleComplete("wordmatch",e)} />}
+                {screen==="story"     && <StoryGame     onComplete={e => handleComplete("story",    e)} />}
+                {screen==="spelling"  && <SpellingGame  onComplete={e => handleComplete("spelling", e)} />}
+                <div style={{ marginTop:20 }}>
+                  <Btn onClick={() => setScreen("map")} variant="ghost" style={{ fontSize:14, padding:"10px 20px" }}>← Tilbage til banen</Btn>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
