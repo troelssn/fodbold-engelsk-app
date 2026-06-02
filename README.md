@@ -9,6 +9,7 @@ Appen kombinerer fodbold og engelskundervisning i tre mini-spil:
 - **Ord-Aflevering** – match danske og engelske fodboldord mod hinanden
 - **Kamprapport** – læs en kort engelsk historie og svar på forståelsesspørgsmål
 - **Målspark** – stav engelske ord rigtigt for at score mål
+- **Udfyld Sætningen** – find det manglende engelske ord i en sætning
 
 Man optjener point (XP) og klatrer gennem niveauer fra *Reservespiller* til *Fodboldlegende*.
 
