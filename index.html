@@ -34,7 +34,6 @@
     const CONTENT = {
       1: {
         label: "Niveau 1",
-        age: "8–9 år",
         emoji: "🌱",
         color: "#22c55e",
         wordPairs: [
@@ -62,10 +61,15 @@
           { da:"Hold",   en:"team",  hint:"👥" },
           { da:"Spark",  en:"kick",  hint:"🦵" },
         ],
+        fillIn: [
+          { sentence:"Tom kicks the ___ into the net.",  missing:"ball", da:"Tom sparker ___ ind i nettet.",     opts:["ball","shoe","hat","cup"] },
+          { sentence:"Our ___ wins the match.",          missing:"team", da:"Vores ___ vinder kampen.",          opts:["team","town","farm","school"] },
+          { sentence:"The player can ___ very fast.",    missing:"run",  da:"Spilleren kan ___ meget hurtigt.", opts:["run","swim","fly","cook"] },
+          { sentence:"It is great to ___ the cup!",      missing:"win",  da:"Det er fantastisk at ___ pokalen!", opts:["win","kick","drop","find"] },
+        ],
       },
       2: {
         label: "Niveau 2",
-        age: "10–11 år",
         emoji: "⚽",
         color: "#3b82f6",
         wordPairs: [
@@ -95,10 +99,15 @@
           { da:"Anfører", en:"captain", hint:"🎖️" },
           { da:"Sejr",    en:"victory", hint:"🏆" },
         ],
+        fillIn: [
+          { sentence:"The ___ blew his whistle.",             missing:"referee", da:"___ blæste i fløjten.",              opts:["referee","captain","coach","player"] },
+          { sentence:"Tom took a ___ kick.",                  missing:"corner",  da:"Tom sparkede et ___.",               opts:["corner","penalty","free","goal"] },
+          { sentence:"The ___ led the team well.",            missing:"captain", da:"___ ledte holdet godt.",             opts:["captain","referee","coach","defence"] },
+          { sentence:"Their ___ stopped every shot.",         missing:"defence", da:"Deres ___ stoppede alle skud.",      opts:["defence","corner","pitch","offside"] },
+        ],
       },
       3: {
         label: "Niveau 3",
-        age: "12–13 år",
         emoji: "🔥",
         color: "#f97316",
         wordPairs: [
@@ -128,13 +137,20 @@
           { da:"Turnering",    en:"tournament",   hint:"🏆" },
           { da:"Forsvarer",    en:"defender",     hint:"🛡️" },
         ],
+        fillIn: [
+          { sentence:"The referee awarded a ___.",          missing:"penalty",      da:"Dommeren dømte ___.",                      opts:["penalty","free kick","corner","offside"] },
+          { sentence:"The manager made a ___.",             missing:"substitution", da:"Træneren lavede en ___.",                  opts:["substitution","penalty","tournament","defender"] },
+          { sentence:"The match went to ___.",              missing:"extra time",   da:"Kampen gik i ___.",                        opts:["extra time","full time","half time","injury time"] },
+          { sentence:"The skilled ___ saved the shot.",     missing:"goalkeeper",   da:"Den dygtige ___ reddede skuddet.",         opts:["goalkeeper","defender","captain","referee"] },
+        ],
       },
     };
 
     const GAMES = [
-      { id:"wordmatch", name:"Ord-Aflevering", desc:"Match dansk og engelsk!",  emoji:"🔤", bg:"linear-gradient(135deg,#15803d,#16a34a)", xp:80  },
-      { id:"story",     name:"Kamprapport",    desc:"Læs og forstå historien!", emoji:"📰", bg:"linear-gradient(135deg,#b45309,#d97706)", xp:60  },
-      { id:"spelling",  name:"Målspark",       desc:"Stav rigtigt og score!",   emoji:"⚽", bg:"linear-gradient(135deg,#1d4ed8,#2563eb)", xp:120 },
+      { id:"wordmatch", name:"Ord-Aflevering",   desc:"Match dansk og engelsk!",      emoji:"🔤", bg:"linear-gradient(135deg,#15803d,#16a34a)", xp:80  },
+      { id:"story",     name:"Kamprapport",       desc:"Læs og forstå historien!",     emoji:"📰", bg:"linear-gradient(135deg,#b45309,#d97706)", xp:60  },
+      { id:"spelling",  name:"Målspark",          desc:"Stav rigtigt og score!",       emoji:"⚽", bg:"linear-gradient(135deg,#1d4ed8,#2563eb)", xp:120 },
+      { id:"fillin",    name:"Udfyld Sætningen",  desc:"Find det manglende ord!",      emoji:"✏️", bg:"linear-gradient(135deg,#7c3aed,#9333ea)", xp:100 },
     ];
 
     function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
@@ -277,7 +293,6 @@
                     style={{ borderRadius:14, padding:"14px 10px", textAlign:"center", cursor:"pointer", border:active?`2px solid ${nc.color}`:"2px solid rgba(255,255,255,.1)", background:active?`${nc.color}18`:"rgba(255,255,255,.04)", transition:"all .2s", boxShadow:active?`0 0 18px ${nc.color}33`:"none" }}>
                     <div style={{ fontSize:28, marginBottom:6 }}>{nc.emoji}</div>
                     <div style={{ fontFamily:"'Bebas Neue',cursive", fontSize:17, letterSpacing:1, color:active?nc.color:"rgba(255,255,255,.7)", marginBottom:3 }}>{nc.label}</div>
-                    <div style={{ fontSize:12, color:"rgba(255,255,255,.4)", fontWeight:700 }}>{nc.age}</div>
                     {active && <div style={{ marginTop:8, background:nc.color, borderRadius:6, fontSize:11, fontWeight:900, color:"#000", padding:"2px 8px" }}>Valgt ✓</div>}
                   </div>
                 );
@@ -516,6 +531,70 @@
       );
     }
 
+    /* ── FILL IN THE BLANK ── */
+    function FillInGame({ onComplete, level }) {
+      const sentences = CONTENT[level].fillIn;
+      const [idx,      setIdx]      = useState(0);
+      const [answered, setAnswered] = useState(null);
+      const [score,    setScore]    = useState(0);
+      const [feedback, setFeedback] = useState(null);
+      const [opts]     = useState(() => sentences.map(s => shuffle(s.opts)));
+      const current    = sentences[idx];
+
+      const handlePick = (opt) => {
+        if (answered !== null) return;
+        setAnswered(opt);
+        const correct = opt === current.missing;
+        const ns = score + (correct ? 1 : 0);
+        setFeedback(correct ? "MÅL! ⚽" : "Prøv igen! 💪");
+        setTimeout(() => {
+          setFeedback(null);
+          if (idx + 1 < sentences.length) { setIdx(i => i + 1); setAnswered(null); if (correct) setScore(ns); }
+          else { if (correct) setScore(ns); setTimeout(() => onComplete(ns * 25), 600); }
+        }, 1400);
+      };
+
+      const parts = current.sentence.split("___");
+
+      return (
+        <div style={{ width:"100%" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+            <h2 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:28, letterSpacing:2, color:"#c4b5fd" }}>✏️ Udfyld Sætningen</h2>
+            <div style={{ background:"rgba(124,58,237,.2)", border:"1px solid rgba(124,58,237,.4)", borderRadius:8, padding:"6px 14px", fontWeight:900, fontSize:13, color:"#c4b5fd" }}>{idx+1}/{sentences.length}</div>
+          </div>
+          {feedback && <GoalFlash msg={feedback} />}
+          <div key={idx} style={{ animation:"popIn .35s ease" }}>
+            <Card style={{ textAlign:"center" }}>
+              <p style={{ fontSize:13, color:"rgba(255,255,255,.4)", fontWeight:800, marginBottom:16, textTransform:"uppercase", letterSpacing:1.5 }}>🇩🇰 {current.da.replace("___","______")}</p>
+              <div style={{ background:"rgba(0,0,0,.4)", borderRadius:14, padding:"18px 16px", marginBottom:22, border:"1px solid rgba(124,58,237,.3)", fontSize:20, fontWeight:900, lineHeight:1.6 }}>
+                <span style={{ color:"rgba(255,255,255,.85)" }}>{parts[0]}</span>
+                <span style={{ display:"inline-block", minWidth:90, borderBottom:"3px solid #a78bfa", margin:"0 6px", textAlign:"center", color: answered ? (answered===current.missing?"#22c55e":"#ef4444") : "#a78bfa", fontFamily:"'Bebas Neue',cursive", letterSpacing:2, fontSize:22 }}>
+                  {answered || "___"}
+                </span>
+                <span style={{ color:"rgba(255,255,255,.85)" }}>{parts[1]}</span>
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                {opts[idx].map((opt,i) => {
+                  let bg="rgba(255,255,255,.06)", border="rgba(255,255,255,.15)", color="white";
+                  if (answered !== null) {
+                    if (opt === current.missing)  { bg="rgba(34,197,94,.3)";  border="#22c55e"; }
+                    else if (opt === answered)     { bg="rgba(239,68,68,.2)";  border="#ef4444"; color="rgba(255,255,255,.6)"; }
+                    else                           { bg="rgba(255,255,255,.03)"; color="rgba(255,255,255,.3)"; }
+                  }
+                  return (
+                    <button key={i} onClick={() => handlePick(opt)} disabled={answered!==null}
+                      style={{ padding:"13px 10px", borderRadius:12, border:`2px solid ${border}`, background:bg, color, fontFamily:"'Nunito',sans-serif", fontSize:15, fontWeight:900, cursor:answered!==null?"default":"pointer", transition:"all .2s" }}>
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
     /* ── RESULTS ── */
     function ResultsScreen({ xp, onContinue, level }) {
       const lvl = getXpLevel(xp);
@@ -531,7 +610,7 @@
               <div style={{ fontSize:11, fontWeight:900, color:"rgba(255,255,255,.4)", textTransform:"uppercase", letterSpacing:2, marginBottom:4 }}>Slutresultat</div>
               <div style={{ fontFamily:"'Bebas Neue',cursive", fontSize:50, letterSpacing:3, color:"#fbbf24" }}>{xp} pts</div>
               <div style={{ color:"rgba(255,255,255,.55)", fontSize:14, fontWeight:700 }}>{lvl.name}</div>
-              <div style={{ marginTop:8, display:"inline-flex", alignItems:"center", gap:6, background:`${c.color}22`, border:`1px solid ${c.color}44`, borderRadius:8, padding:"4px 12px", fontSize:13, fontWeight:900, color:c.color }}>{c.emoji} {c.label} · {c.age}</div>
+              <div style={{ marginTop:8, display:"inline-flex", alignItems:"center", gap:6, background:`${c.color}22`, border:`1px solid ${c.color}44`, borderRadius:8, padding:"4px 12px", fontSize:13, fontWeight:900, color:c.color }}>{c.emoji} {c.label}</div>
             </div>
             <XPBar xp={xp} />
             <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginTop:16 }}>
@@ -590,12 +669,13 @@
                 ? <ResultsScreen xp={xp} onContinue={handleRestart} level={level} />
                 : <MapScreen xp={xp} completed={completed} onSelect={id => setScreen(id)} onHome={() => setScreen("home")} level={level} onChangeLevel={handleChangeLevel} />
             )}
-            {["wordmatch","story","spelling"].includes(screen) && (
+            {["wordmatch","story","spelling","fillin"].includes(screen) && (
               <div style={{ width:"100%" }}>
                 <XPBar xp={xp} />
                 {screen==="wordmatch" && <WordMatchGame onComplete={e => handleComplete("wordmatch",e)} level={level} />}
                 {screen==="story"     && <StoryGame     onComplete={e => handleComplete("story",    e)} level={level} />}
                 {screen==="spelling"  && <SpellingGame  onComplete={e => handleComplete("spelling", e)} level={level} />}
+                {screen==="fillin"    && <FillInGame    onComplete={e => handleComplete("fillin",   e)} level={level} />}
                 <div style={{ marginTop:20 }}>
                   <Btn onClick={() => setScreen("map")} variant="ghost" style={{ fontSize:14, padding:"10px 20px" }}>← Tilbage til banen</Btn>
                 </div>

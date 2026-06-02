@@ -3,7 +3,7 @@
 ## Indhold og læring
 - Flere ord og historier per niveau — lige nu er der kun ét sæt, så det bliver hurtigt kedeligt ved genspil
 - Lyd — udtale af de engelske ord når man matcher dem rigtigt
-- Flere spiltyper, fx udfyld-det-manglende-ord i en sætning
+- ~~Flere spiltyper, fx udfyld-det-manglende-ord i en sætning~~ ✅ Implementeret
 
 ## Progression og motivation
 - ~~Gem fremskridt i `localStorage` så XP og niveau huskes mellem sessioner~~ ✅ Implementeret
