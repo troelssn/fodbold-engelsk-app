@@ -548,12 +548,23 @@
       );
     }
 
+    const STORAGE_KEY = "fodboldEngelsk";
+
+    function loadSaved() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; }
+    }
+
     /* ── ROOT APP ── */
     function App() {
+      const saved = loadSaved();
       const [screen,    setScreen]    = useState("home");
-      const [xp,        setXp]        = useState(0);
-      const [completed, setCompleted] = useState(new Set());
-      const [level,     setLevel]     = useState(1);
+      const [xp,        setXp]        = useState(saved.xp ?? 0);
+      const [completed, setCompleted] = useState(new Set(saved.completed ?? []));
+      const [level,     setLevel]     = useState(saved.level ?? 1);
+
+      useEffect(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ xp, level, completed: [...completed] }));
+      }, [xp, level, completed]);
 
       const handleComplete = useCallback((game, earned) => {
         setXp(prev => prev + earned);
