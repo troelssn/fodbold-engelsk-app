@@ -30,37 +30,106 @@
     const CONFETTI_COLORS = ["#22c55e","#fbbf24","#ef4444","#3b82f6","#ffffff","#f97316","#8b5cf6"];
     const LIGHTS = [{ left:"-8%",top:"-8%",size:500 },{ left:"108%",top:"-8%",size:500 },{ left:"50%",top:"-5%",size:400 }];
 
-    const WORD_PAIRS = [
-      { da:"bold",   en:"ball",  e:"⚽" },
-      { da:"mål",    en:"goal",  e:"🥅" },
-      { da:"løb",    en:"run",   e:"🏃" },
-      { da:"hold",   en:"team",  e:"👥" },
-      { da:"spark",  en:"kick",  e:"🦵" },
-      { da:"sejr",   en:"win",   e:"🏆" },
-      { da:"træner", en:"coach", e:"👨‍💼" },
-      { da:"bane",   en:"pitch", e:"🟩" },
-    ];
-
-    const STORY = {
-      title: "The Last Minute Goal",
-      emoji: "⚽",
-      text: "It was the last minute of the big match. The score was 1-1. Everyone was nervous.\n\nTom got the ball on the right wing. He ran fast past two players. His friend Jack was free in the middle. Tom passed the ball perfectly to him.\n\nJack hit a powerful shot. The goalkeeper dived but couldn't reach it. GOAL! The crowd went absolutely crazy. Jack jumped up and shouted \"YES!\" at the top of his voice.\n\nHis team had won the cup. It was the best moment of his life!",
-      qs: [
-        { q:"What was the score when Tom got the ball?", opts:["0–0","2–1","1–1","3–2"], a:2 },
-        { q:"Where did Tom get the ball?",              opts:["In the goal","On the right wing","Near the coach","In the middle"], a:1 },
-        { q:"What did the goalkeeper do?",              opts:["Caught the ball","Scored a goal","Dived but missed","Ran away"], a:2 },
-        { q:"What did the team win?",                   opts:["A medal 🥇","The cup 🏆","A new ball ⚽","A trophy 🥈"], a:1 },
-      ],
+    /* ── LEVEL CONTENT ── */
+    const CONTENT = {
+      1: {
+        label: "Niveau 1",
+        age: "8–9 år",
+        emoji: "🌱",
+        color: "#22c55e",
+        wordPairs: [
+          { da:"bold",   en:"ball",  e:"⚽" },
+          { da:"mål",    en:"goal",  e:"🥅" },
+          { da:"løb",    en:"run",   e:"🏃" },
+          { da:"hold",   en:"team",  e:"👥" },
+          { da:"spark",  en:"kick",  e:"🦵" },
+          { da:"sejr",   en:"win",   e:"🏆" },
+        ],
+        story: {
+          title: "The Big Match",
+          emoji: "⚽",
+          text: "Tom likes football. He plays with his team every day.\n\nOne day they have a big match. Tom gets the ball. He runs fast. He kicks the ball hard.\n\nGOAL! His team wins. Tom is very happy!",
+          qs: [
+            { q:"What does Tom like?",        opts:["Tennis","Football","Swimming","Running"], a:1 },
+            { q:"What does Tom do with the ball?", opts:["Throws it","Drops it","Kicks it","Catches it"], a:2 },
+            { q:"How does Tom feel at the end?", opts:["Sad","Angry","Tired","Happy"], a:3 },
+          ],
+        },
+        spellingWords: [
+          { da:"Bold",   en:"ball",  hint:"⚽" },
+          { da:"Mål",    en:"goal",  hint:"🥅" },
+          { da:"Løb",    en:"run",   hint:"🏃" },
+          { da:"Hold",   en:"team",  hint:"👥" },
+          { da:"Spark",  en:"kick",  hint:"🦵" },
+        ],
+      },
+      2: {
+        label: "Niveau 2",
+        age: "10–11 år",
+        emoji: "⚽",
+        color: "#3b82f6",
+        wordPairs: [
+          { da:"træner",  en:"coach",   e:"👨‍💼" },
+          { da:"bane",    en:"pitch",   e:"🟩" },
+          { da:"hjørne",  en:"corner",  e:"🚩" },
+          { da:"dommer",  en:"referee", e:"🟨" },
+          { da:"forsvar", en:"defence", e:"🛡️" },
+          { da:"anfører", en:"captain", e:"🎖️" },
+        ],
+        story: {
+          title: "The Last Minute Goal",
+          emoji: "⚽",
+          text: "It was the last minute of the big match. The score was 1-1. Everyone was nervous.\n\nTom got the ball on the right wing. He ran fast past two players. His friend Jack was free in the middle. Tom passed the ball perfectly to him.\n\nJack hit a powerful shot. The goalkeeper dived but couldn't reach it. GOAL! The crowd went absolutely crazy. His team had won the cup!",
+          qs: [
+            { q:"What was the score when Tom got the ball?", opts:["0–0","2–1","1–1","3–2"], a:2 },
+            { q:"Where did Tom get the ball?",              opts:["In the goal","On the right wing","Near the coach","In the middle"], a:1 },
+            { q:"What did the goalkeeper do?",              opts:["Caught the ball","Scored a goal","Dived but missed","Ran away"], a:2 },
+            { q:"What did the team win?",                   opts:["A medal","The cup","A new ball","A trophy"], a:1 },
+          ],
+        },
+        spellingWords: [
+          { da:"Hjørne",  en:"corner",  hint:"🚩" },
+          { da:"Dommer",  en:"referee", hint:"🟨" },
+          { da:"Skud",    en:"shot",    hint:"💥" },
+          { da:"Forsvar", en:"defence", hint:"🛡️" },
+          { da:"Anfører", en:"captain", hint:"🎖️" },
+          { da:"Sejr",    en:"victory", hint:"🏆" },
+        ],
+      },
+      3: {
+        label: "Niveau 3",
+        age: "12–13 år",
+        emoji: "🔥",
+        color: "#f97316",
+        wordPairs: [
+          { da:"aflevering",   en:"pass",        e:"🎯" },
+          { da:"offside",      en:"offside",     e:"🚫" },
+          { da:"straffespark", en:"penalty",     e:"⚡" },
+          { da:"frispark",     en:"free kick",   e:"🎯" },
+          { da:"forlænget",    en:"extra time",  e:"⏱️" },
+          { da:"udskiftning",  en:"substitution",e:"🔄" },
+        ],
+        story: {
+          title: "The Championship Final",
+          emoji: "🏆",
+          text: "The stadium was packed with 40,000 passionate supporters. Both teams had fought hard throughout the entire season to reach the championship final.\n\nWith ten minutes remaining, the score was level at 2-2. United's captain received a precise through-ball and accelerated past two defenders. The goalkeeper rushed out to narrow the angle, but the striker chipped the ball brilliantly over him.\n\nThe crowd erupted. United had won the championship on the final day of the season. It was an extraordinary achievement that no one would forget.",
+          qs: [
+            { q:"How many supporters were in the stadium?",  opts:["20,000","30,000","40,000","50,000"], a:2 },
+            { q:"What was the score with ten minutes left?", opts:["1–0","2–1","0–0","2–2"], a:3 },
+            { q:"How did the striker score?",               opts:["A header","A penalty","A chip over the goalkeeper","A free kick"], a:2 },
+            { q:"When did United win the championship?",    opts:["In extra time","On the final day of the season","In a penalty shootout","At the start of the season"], a:1 },
+          ],
+        },
+        spellingWords: [
+          { da:"Straffespark", en:"penalty",      hint:"⚡" },
+          { da:"Udskiftning",  en:"substitution", hint:"🔄" },
+          { da:"Forlænget",    en:"extra time",   hint:"⏱️" },
+          { da:"Målmand",      en:"goalkeeper",   hint:"🧤" },
+          { da:"Turnering",    en:"tournament",   hint:"🏆" },
+          { da:"Forsvarer",    en:"defender",     hint:"🛡️" },
+        ],
+      },
     };
-
-    const SPELLING_WORDS = [
-      { da:"Hjørne",  en:"corner",  hint:"🚩" },
-      { da:"Dommer",  en:"referee", hint:"🟨" },
-      { da:"Skud",    en:"shot",    hint:"💥" },
-      { da:"Forsvar", en:"defence", hint:"🛡️" },
-      { da:"Anfører", en:"captain", hint:"🎖️" },
-      { da:"Sejr",    en:"victory", hint:"🏆" },
-    ];
 
     const GAMES = [
       { id:"wordmatch", name:"Ord-Aflevering", desc:"Match dansk og engelsk!",  emoji:"🔤", bg:"linear-gradient(135deg,#15803d,#16a34a)", xp:80  },
@@ -70,7 +139,7 @@
 
     function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
-    function getLevel(xp) {
+    function getXpLevel(xp) {
       if (xp >= 220) return { name:"Fodboldlegende 🏆", next:260, color:"#fbbf24" };
       if (xp >= 140) return { name:"Holdkaptajn 🎖️",   next:220, color:"#22c55e" };
       if (xp >= 60)  return { name:"Startspiller ⚽",   next:140, color:"#3b82f6" };
@@ -91,7 +160,7 @@
 
     /* ── XP BAR ── */
     function XPBar({ xp }) {
-      const lvl = getLevel(xp);
+      const lvl = getXpLevel(xp);
       const base = xp>=220?220 : xp>=140?140 : xp>=60?60 : 0;
       const pct  = Math.min(((xp-base)/(lvl.next-base))*100, 100);
       return (
@@ -158,8 +227,21 @@
       );
     }
 
+    /* ── LEVEL BADGE ── */
+    function LevelBadge({ level, onClick }) {
+      const c = CONTENT[level];
+      return (
+        <button onClick={onClick} style={{ background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:6, background:`rgba(0,0,0,.4)`, border:`1.5px solid ${c.color}44`, borderRadius:10, padding:"5px 12px" }}>
+          <span style={{ fontSize:14 }}>{c.emoji}</span>
+          <span style={{ fontFamily:"'Nunito',sans-serif", fontWeight:900, fontSize:13, color:c.color }}>{c.label}</span>
+          <span style={{ fontSize:11, color:"rgba(255,255,255,.35)", fontWeight:700 }}>✎</span>
+        </button>
+      );
+    }
+
     /* ── HOME SCREEN ── */
-    function HomeScreen({ onStart }) {
+    function HomeScreen({ onStart, level, onChangeLevel }) {
+      const c = CONTENT[level];
       return (
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:24, textAlign:"center" }}>
           <div style={{ fontSize:96, lineHeight:1, animation:"floatY 2.5s ease-in-out infinite" }}>⚽</div>
@@ -180,6 +262,29 @@
             </div>
             <Btn onClick={onStart} variant="gold" style={{ width:"100%", fontSize:20, padding:"15px" }}>⚽ Spark i gang!</Btn>
           </Card>
+
+          {/* Level picker */}
+          <div style={{ width:"100%", maxWidth:420 }}>
+            <p style={{ color:"rgba(255,255,255,.4)", fontSize:13, fontWeight:900, textTransform:"uppercase", letterSpacing:1.5, marginBottom:12 }}>Vælg dit niveau</p>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
+              {[1,2,3].map(n => {
+                const nc = CONTENT[n];
+                const active = level === n;
+                return (
+                  <div key={n} onClick={() => onChangeLevel(n)}
+                    onMouseEnter={e => { e.currentTarget.style.transform="translateY(-3px)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform=""; }}
+                    style={{ borderRadius:14, padding:"14px 10px", textAlign:"center", cursor:"pointer", border:active?`2px solid ${nc.color}`:"2px solid rgba(255,255,255,.1)", background:active?`${nc.color}18`:"rgba(255,255,255,.04)", transition:"all .2s", boxShadow:active?`0 0 18px ${nc.color}33`:"none" }}>
+                    <div style={{ fontSize:28, marginBottom:6 }}>{nc.emoji}</div>
+                    <div style={{ fontFamily:"'Bebas Neue',cursive", fontSize:17, letterSpacing:1, color:active?nc.color:"rgba(255,255,255,.7)", marginBottom:3 }}>{nc.label}</div>
+                    <div style={{ fontSize:12, color:"rgba(255,255,255,.4)", fontWeight:700 }}>{nc.age}</div>
+                    {active && <div style={{ marginTop:8, background:nc.color, borderRadius:6, fontSize:11, fontWeight:900, color:"#000", padding:"2px 8px" }}>Valgt ✓</div>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <div style={{ background:"rgba(0,0,0,.6)", border:"2px solid rgba(255,255,255,.1)", borderRadius:12, padding:"10px 20px", display:"flex", gap:20, fontSize:13, fontWeight:900, color:"rgba(255,255,255,.5)" }}>
             <span>🔤 80 pts</span><span style={{ color:"rgba(255,255,255,.2)" }}>|</span>
             <span>📰 60 pts</span><span style={{ color:"rgba(255,255,255,.2)" }}>|</span>
@@ -190,13 +295,17 @@
     }
 
     /* ── MAP SCREEN ── */
-    function MapScreen({ xp, completed, onSelect, onHome }) {
+    function MapScreen({ xp, completed, onSelect, onHome, level, onChangeLevel }) {
+      const c = CONTENT[level];
       return (
         <div style={{ width:"100%" }}>
           <XPBar xp={xp} />
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
             <h2 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:32, letterSpacing:2, color:"#86efac" }}>🗂️ Banevalg</h2>
-            <button onClick={onHome} style={{ background:"none", border:"none", color:"rgba(255,255,255,.4)", cursor:"pointer", fontSize:13, fontWeight:900 }}>← Hjem</button>
+            <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+              <LevelBadge level={level} onClick={onHome} />
+              <button onClick={onHome} style={{ background:"none", border:"none", color:"rgba(255,255,255,.4)", cursor:"pointer", fontSize:13, fontWeight:900 }}>← Hjem</button>
+            </div>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
             {GAMES.map((g,i) => {
@@ -225,8 +334,8 @@
     }
 
     /* ── WORD MATCH ── */
-    function WordMatchGame({ onComplete }) {
-      const pairs = WORD_PAIRS.slice(0, 6);
+    function WordMatchGame({ onComplete, level }) {
+      const pairs = CONTENT[level].wordPairs.slice(0, 6);
       const [daSelected, setDaSelected] = useState(null);
       const [enSelected, setEnSelected] = useState(null);
       const [matched,    setMatched]    = useState(new Set());
@@ -282,7 +391,8 @@
     }
 
     /* ── STORY GAME ── */
-    function StoryGame({ onComplete }) {
+    function StoryGame({ onComplete, level }) {
+      const story = CONTENT[level].story;
       const [phase,    setPhase]    = useState("read");
       const [qIdx,     setQIdx]     = useState(0);
       const [answered, setAnswered] = useState(null);
@@ -292,12 +402,12 @@
       const handleAnswer = (idx) => {
         if (answered !== null) return;
         setAnswered(idx);
-        const correct = idx === STORY.qs[qIdx].a;
+        const correct = idx === story.qs[qIdx].a;
         const ns = score + (correct?1:0);
         setFeedback(correct ? "KORREKT! 🎯" : "Ikke helt! 💪");
         setTimeout(() => {
           setFeedback(null);
-          if (qIdx+1 < STORY.qs.length) { setQIdx(q=>q+1); setAnswered(null); if(correct) setScore(ns); }
+          if (qIdx+1 < story.qs.length) { setQIdx(q=>q+1); setAnswered(null); if(correct) setScore(ns); }
           else { if(correct) setScore(ns); setTimeout(() => onComplete(ns*15), 800); }
         }, 1500);
       };
@@ -310,11 +420,11 @@
             <div style={{ animation:"fadeUp .4s ease" }}>
               <Card>
                 <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
-                  <span style={{ fontSize:36 }}>{STORY.emoji}</span>
-                  <h3 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:24, letterSpacing:1.5, color:"#fcd34d" }}>{STORY.title}</h3>
+                  <span style={{ fontSize:36 }}>{story.emoji}</span>
+                  <h3 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:24, letterSpacing:1.5, color:"#fcd34d" }}>{story.title}</h3>
                 </div>
                 <div style={{ background:"rgba(0,0,0,.4)", borderRadius:12, padding:"16px 18px", borderLeft:"4px solid #22c55e", marginBottom:18 }}>
-                  {STORY.text.split("\n\n").map((para,i) => <p key={i} style={{ fontSize:15, lineHeight:1.9, color:"rgba(255,255,255,.88)", marginBottom:i<3?14:0, fontWeight:600 }}>{para}</p>)}
+                  {story.text.split("\n\n").map((para,i) => <p key={i} style={{ fontSize:15, lineHeight:1.9, color:"rgba(255,255,255,.88)", marginBottom:i<3?14:0, fontWeight:600 }}>{para}</p>)}
                 </div>
                 <Btn onClick={() => setPhase("quiz")} variant="primary" style={{ width:"100%" }}>Svar på spørgsmål 💬</Btn>
               </Card>
@@ -322,18 +432,18 @@
           ) : (
             <div key={qIdx} style={{ animation:"popIn .35s ease" }}>
               <div style={{ background:"rgba(0,0,0,.6)", borderRadius:10, padding:"8px 16px", display:"flex", justifyContent:"space-between", marginBottom:16, fontSize:13, fontWeight:900 }}>
-                <span style={{ color:"rgba(255,255,255,.5)" }}>Spørgsmål {qIdx+1}/{STORY.qs.length}</span>
+                <span style={{ color:"rgba(255,255,255,.5)" }}>Spørgsmål {qIdx+1}/{story.qs.length}</span>
                 <span style={{ color:"#fbbf24" }}>⚽ {score*15} pts</span>
               </div>
               <Card>
-                <p style={{ fontSize:17, fontWeight:900, marginBottom:20, lineHeight:1.55 }}>🤔 {STORY.qs[qIdx].q}</p>
-                {STORY.qs[qIdx].opts.map((opt,i) => {
+                <p style={{ fontSize:17, fontWeight:900, marginBottom:20, lineHeight:1.55 }}>🤔 {story.qs[qIdx].q}</p>
+                {story.qs[qIdx].opts.map((opt,i) => {
                   let bg="rgba(255,255,255,.05)", border="rgba(255,255,255,.12)";
                   if (answered !== null) {
-                    if (i===STORY.qs[qIdx].a)             { bg="rgba(34,197,94,.3)";  border="#22c55e"; }
-                    else if (i===answered)                  { bg="rgba(239,68,68,.25)"; border="#ef4444"; }
+                    if (i===story.qs[qIdx].a)  { bg="rgba(34,197,94,.3)";  border="#22c55e"; }
+                    else if (i===answered)       { bg="rgba(239,68,68,.25)"; border="#ef4444"; }
                   }
-                  return <button key={i} onClick={() => handleAnswer(i)} disabled={answered!==null} style={{ display:"block", width:"100%", padding:"13px 16px", margin:"8px 0", borderRadius:12, border:`2px solid ${border}`, background:bg, color:"white", fontFamily:"'Nunito',sans-serif", fontSize:15, fontWeight:800, cursor:answered!==null?"default":"pointer", textAlign:"left", transition:"all .2s", animation:answered!==null&&i===STORY.qs[qIdx].a?"correctPop .4s ease":undefined }}>{opt}</button>;
+                  return <button key={i} onClick={() => handleAnswer(i)} disabled={answered!==null} style={{ display:"block", width:"100%", padding:"13px 16px", margin:"8px 0", borderRadius:12, border:`2px solid ${border}`, background:bg, color:"white", fontFamily:"'Nunito',sans-serif", fontSize:15, fontWeight:800, cursor:answered!==null?"default":"pointer", textAlign:"left", transition:"all .2s", animation:answered!==null&&i===story.qs[qIdx].a?"correctPop .4s ease":undefined }}>{opt}</button>;
                 })}
               </Card>
             </div>
@@ -343,7 +453,8 @@
     }
 
     /* ── SPELLING ── */
-    function SpellingGame({ onComplete }) {
+    function SpellingGame({ onComplete, level }) {
+      const words = CONTENT[level].spellingWords;
       const [idx,      setIdx]      = useState(0);
       const [input,    setInput]    = useState("");
       const [status,   setStatus]   = useState(null);
@@ -351,7 +462,7 @@
       const [feedback, setFeedback] = useState(null);
       const [attempts, setAttempts] = useState(0);
       const [goals,    setGoals]    = useState(0);
-      const word = SPELLING_WORDS[idx];
+      const word = words[idx];
 
       const check = () => {
         if (!input.trim()) return;
@@ -363,7 +474,7 @@
           setFeedback("MÅL! ⚽");
           setTimeout(() => {
             setFeedback(null);
-            if (idx+1 < SPELLING_WORDS.length) { setIdx(i=>i+1); setInput(""); setStatus(null); setAttempts(0); }
+            if (idx+1 < words.length) { setIdx(i=>i+1); setInput(""); setStatus(null); setAttempts(0); }
             else setTimeout(() => onComplete(ns), 500);
           }, 1000);
         } else {
@@ -377,11 +488,11 @@
         <div style={{ width:"100%" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
             <h2 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:28, letterSpacing:2, color:"#93c5fd" }}>⚽ MÅLSPARK</h2>
-            <div style={{ background:"rgba(59,130,246,.2)", border:"1px solid rgba(59,130,246,.4)", borderRadius:8, padding:"6px 14px", fontWeight:900, fontSize:13, color:"#93c5fd" }}>{idx+1}/{SPELLING_WORDS.length}</div>
+            <div style={{ background:"rgba(59,130,246,.2)", border:"1px solid rgba(59,130,246,.4)", borderRadius:8, padding:"6px 14px", fontWeight:900, fontSize:13, color:"#93c5fd" }}>{idx+1}/{words.length}</div>
           </div>
           {feedback && <GoalFlash msg={feedback} />}
           <div style={{ display:"flex", gap:6, marginBottom:18, justifyContent:"center" }}>
-            {SPELLING_WORDS.map((_,i) => <div key={i} style={{ fontSize:20, filter:i<goals?"none":"grayscale(1) opacity(.3)", transition:"filter .3s" }}>⚽</div>)}
+            {words.map((_,i) => <div key={i} style={{ fontSize:20, filter:i<goals?"none":"grayscale(1) opacity(.3)", transition:"filter .3s" }}>⚽</div>)}
           </div>
           <div key={idx} style={{ animation:"popIn .35s ease" }}>
             <Card style={{ textAlign:"center" }}>
@@ -406,8 +517,9 @@
     }
 
     /* ── RESULTS ── */
-    function ResultsScreen({ xp, onContinue }) {
-      const lvl = getLevel(xp);
+    function ResultsScreen({ xp, onContinue, level }) {
+      const lvl = getXpLevel(xp);
+      const c = CONTENT[level];
       return (
         <div style={{ textAlign:"center", width:"100%", animation:"popIn .5s ease" }}>
           <Confetti />
@@ -419,6 +531,7 @@
               <div style={{ fontSize:11, fontWeight:900, color:"rgba(255,255,255,.4)", textTransform:"uppercase", letterSpacing:2, marginBottom:4 }}>Slutresultat</div>
               <div style={{ fontFamily:"'Bebas Neue',cursive", fontSize:50, letterSpacing:3, color:"#fbbf24" }}>{xp} pts</div>
               <div style={{ color:"rgba(255,255,255,.55)", fontSize:14, fontWeight:700 }}>{lvl.name}</div>
+              <div style={{ marginTop:8, display:"inline-flex", alignItems:"center", gap:6, background:`${c.color}22`, border:`1px solid ${c.color}44`, borderRadius:8, padding:"4px 12px", fontSize:13, fontWeight:900, color:c.color }}>{c.emoji} {c.label} · {c.age}</div>
             </div>
             <XPBar xp={xp} />
             <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginTop:16 }}>
@@ -440,6 +553,7 @@
       const [screen,    setScreen]    = useState("home");
       const [xp,        setXp]        = useState(0);
       const [completed, setCompleted] = useState(new Set());
+      const [level,     setLevel]     = useState(1);
 
       const handleComplete = useCallback((game, earned) => {
         setXp(prev => prev + earned);
@@ -447,24 +561,30 @@
         setScreen("map");
       }, []);
 
+      const handleChangeLevel = (n) => {
+        setLevel(n);
+        setXp(0);
+        setCompleted(new Set());
+      };
+
       const handleRestart = () => { setXp(0); setCompleted(new Set()); setScreen("home"); };
 
       return (
         <div style={{ minHeight:"100vh", background:"linear-gradient(160deg,#040f04 0%,#071a07 40%,#0d2b0d 100%)", fontFamily:"'Nunito',sans-serif", color:"white", position:"relative", overflowX:"hidden" }}>
           <StadiumBg />
           <div style={{ position:"relative", zIndex:1, maxWidth:560, margin:"0 auto", padding:"28px 18px", minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-            {screen === "home" && <HomeScreen onStart={() => setScreen("map")} />}
+            {screen === "home" && <HomeScreen onStart={() => setScreen("map")} level={level} onChangeLevel={handleChangeLevel} />}
             {screen === "map"  && (
               completed.size === GAMES.length
-                ? <ResultsScreen xp={xp} onContinue={handleRestart} />
-                : <MapScreen xp={xp} completed={completed} onSelect={id => setScreen(id)} onHome={() => setScreen("home")} />
+                ? <ResultsScreen xp={xp} onContinue={handleRestart} level={level} />
+                : <MapScreen xp={xp} completed={completed} onSelect={id => setScreen(id)} onHome={() => setScreen("home")} level={level} onChangeLevel={handleChangeLevel} />
             )}
             {["wordmatch","story","spelling"].includes(screen) && (
               <div style={{ width:"100%" }}>
                 <XPBar xp={xp} />
-                {screen==="wordmatch" && <WordMatchGame onComplete={e => handleComplete("wordmatch",e)} />}
-                {screen==="story"     && <StoryGame     onComplete={e => handleComplete("story",    e)} />}
-                {screen==="spelling"  && <SpellingGame  onComplete={e => handleComplete("spelling", e)} />}
+                {screen==="wordmatch" && <WordMatchGame onComplete={e => handleComplete("wordmatch",e)} level={level} />}
+                {screen==="story"     && <StoryGame     onComplete={e => handleComplete("story",    e)} level={level} />}
+                {screen==="spelling"  && <SpellingGame  onComplete={e => handleComplete("spelling", e)} level={level} />}
                 <div style={{ marginTop:20 }}>
                   <Btn onClick={() => setScreen("map")} variant="ghost" style={{ fontSize:14, padding:"10px 20px" }}>← Tilbage til banen</Btn>
                 </div>
