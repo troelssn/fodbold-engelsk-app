@@ -2,13 +2,23 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-visual" />
   <title>Fodbold Engelsk ⚽</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #040f04; }
+    button, input { touch-action: manipulation; }
+    .app-shell { min-height: 100vh; min-height: 100dvh; }
+    .app-inner { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .home-title { font-size: clamp(42px, 13vw, 62px); }
+    .win-title  { font-size: clamp(36px, 11vw, 52px); }
+    .goal-flash { font-size: clamp(36px, 12vw, 72px); }
+    @media (max-width: 600px) {
+      /* Top-justeret på mobil, så tastaturet ikke skubber layoutet rundt */
+      .app-inner { justify-content: flex-start; padding-top: 16px; }
+    }
     @keyframes floatY { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-16px) rotate(5deg)} }
     @keyframes popIn { 0%{opacity:0;transform:scale(.4) rotate(-6deg)} 70%{transform:scale(1.08)} 100%{opacity:1;transform:scale(1) rotate(0)} }
     @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-9px)} 75%{transform:translateX(9px)} }
@@ -25,7 +35,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script type="text/babel">
-    const { useState, useEffect, useCallback } = React;
+    const { useState, useEffect, useCallback, useRef } = React;
 
     const CONFETTI_COLORS = ["#22c55e","#fbbf24","#ef4444","#3b82f6","#ffffff","#f97316","#8b5cf6"];
     const LIGHTS = [{ left:"-8%",top:"-8%",size:500 },{ left:"108%",top:"-8%",size:500 },{ left:"50%",top:"-5%",size:400 }];
@@ -274,6 +284,18 @@
     /* ── UTILITIES ── */
     function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
+    function speak(text) {
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "en-GB";
+        u.rate = 0.85;
+        window.speechSynthesis.speak(u);
+      } catch {}
+    }
+
+    function starsFor(mistakes) { return mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1; }
+
     function getXpLevel(xp) {
       if (xp >= 300) return { name:"Fodboldlegende 🏆", next:400, color:"#fbbf24" };
       if (xp >= 180) return { name:"Holdkaptajn 🎖️",   next:300, color:"#22c55e" };
@@ -349,7 +371,7 @@
     /* ── GOAL FLASH ── */
     function GoalFlash({ msg }) {
       return (
-        <div style={{ position:"fixed", top:"44%", left:"50%", fontFamily:"'Bebas Neue',cursive", fontSize:72, color:"#fbbf24", textShadow:"0 0 30px rgba(251,191,36,.8), 0 4px 0 rgba(0,0,0,.5)", pointerEvents:"none", zIndex:999, whiteSpace:"nowrap", animation:"goalBurst 1.4s ease forwards" }}>
+        <div className="goal-flash" style={{ position:"fixed", top:"44%", left:"50%", fontFamily:"'Bebas Neue',cursive", color:"#fbbf24", textShadow:"0 0 30px rgba(251,191,36,.8), 0 4px 0 rgba(0,0,0,.5)", pointerEvents:"none", zIndex:999, whiteSpace:"nowrap", animation:"goalBurst 1.4s ease forwards" }}>
           {msg}
         </div>
       );
@@ -371,7 +393,7 @@
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:24, textAlign:"center" }}>
           <div style={{ fontSize:96, lineHeight:1, animation:"floatY 2.5s ease-in-out infinite" }}>⚽</div>
           <div>
-            <h1 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:62, letterSpacing:3, background:"linear-gradient(135deg,#fbbf24,#f97316,#22c55e)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", lineHeight:1, marginBottom:6 }}>Fodbold Engelsk</h1>
+            <h1 className="home-title" style={{ fontFamily:"'Bebas Neue',cursive", letterSpacing:3, background:"linear-gradient(135deg,#fbbf24,#f97316,#22c55e)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", lineHeight:1, marginBottom:6 }}>Fodbold Engelsk</h1>
             <p style={{ color:"rgba(255,255,255,.6)", fontSize:17, fontWeight:800 }}>Lær engelsk – ligesom en pro! 🏆</p>
           </div>
           <Card style={{ maxWidth:420 }}>
@@ -445,13 +467,14 @@
 
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
             {GAMES.map((g,i) => {
-              const done = completed.has(g.id);
+              const stars = completed[g.id];
+              const done = !!stars;
               return (
                 <div key={g.id} onClick={() => onSelect(g.id)}
                   onMouseEnter={e=>{ e.currentTarget.style.transform="translateY(-4px) scale(1.03)"; }}
                   onMouseLeave={e=>{ e.currentTarget.style.transform=""; }}
                   style={{ background:g.bg, borderRadius:18, padding:"22px 14px", textAlign:"center", cursor:"pointer", border:done?"2px solid #22c55e":"2px solid transparent", position:"relative", transition:"transform .2s, box-shadow .2s", boxShadow:done?"0 0 24px rgba(34,197,94,.3)":"0 6px 24px rgba(0,0,0,.5)", animation:`popIn ${.3+i*.1}s ease-out` }}>
-                  {done && <div style={{ position:"absolute", top:-10, right:-10, background:"#22c55e", borderRadius:"50%", width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:900, border:"2px solid #040f04" }}>✓</div>}
+                  {done && <div style={{ position:"absolute", top:-12, right:-8, background:"#040f04", borderRadius:10, padding:"3px 8px", fontSize:13, border:"2px solid #22c55e", whiteSpace:"nowrap" }}>{"⭐".repeat(stars)}{"☆".repeat(3-stars)}</div>}
                   <div style={{ fontSize:46, marginBottom:8, animation:done?undefined:`floatY ${2.2+i*.6}s ease-in-out infinite` }}>{g.emoji}</div>
                   <div style={{ fontFamily:"'Bebas Neue',cursive", letterSpacing:1.5, fontSize:18, color:"white", marginBottom:5 }}>{g.name}</div>
                   <div style={{ fontSize:11, color:"rgba(255,255,255,.8)", marginBottom:12, lineHeight:1.4, fontWeight:700 }}>{g.desc}</div>
@@ -473,6 +496,7 @@
       const [wrongAnim,  setWrongAnim]  = useState(false);
       const [feedback,   setFeedback]   = useState(null);
       const [enWords]   = useState(() => shuffle(pairs.map(p => ({ en:p.en, da:p.da }))));
+      const mistakesRef = useRef(0);
 
       useEffect(() => {
         if (daSelected !== null && enSelected !== null) {
@@ -481,9 +505,11 @@
             const next = new Set([...matched, daSelected+"_da", enSelected+"_en"]);
             setMatched(next);
             setFeedback("MÅL! ⚽");
+            speak(enWords[enSelected].en);
             setTimeout(() => setFeedback(null), 1300);
-            if (next.size/2 === pairs.length) setTimeout(() => onComplete(pairs.length*13), 700);
+            if (next.size/2 === pairs.length) setTimeout(() => onComplete(pairs.length*13, mistakesRef.current), 700);
           } else {
+            mistakesRef.current += 1;
             setWrongAnim(true);
             setFeedback("Offside! ❌");
             setTimeout(() => { setWrongAnim(false); setFeedback(null); }, 750);
@@ -539,7 +565,7 @@
         setTimeout(() => {
           setFeedback(null);
           if (qIdx+1 < story.qs.length) { setQIdx(q=>q+1); setAnswered(null); if(correct) setScore(ns); }
-          else { if(correct) setScore(ns); setTimeout(() => onComplete(ns*15), 800); }
+          else { if(correct) setScore(ns); setTimeout(() => onComplete(ns*15, story.qs.length - ns), 800); }
         }, 1500);
       };
 
@@ -552,12 +578,14 @@
               <Card>
                 <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
                   <span style={{ fontSize:36 }}>{story.emoji}</span>
-                  <h3 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:24, letterSpacing:1.5, color:"#fcd34d" }}>{story.title}</h3>
+                  <h3 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:24, letterSpacing:1.5, color:"#fcd34d", flex:1 }}>{story.title}</h3>
+                  <button onClick={() => speak(story.text.replace(/\n\n/g, " "))} title="Læs højt"
+                    style={{ background:"rgba(251,191,36,.15)", border:"1.5px solid rgba(251,191,36,.4)", borderRadius:10, padding:"8px 12px", fontSize:18, cursor:"pointer" }}>🔊</button>
                 </div>
                 <div style={{ background:"rgba(0,0,0,.4)", borderRadius:12, padding:"16px 18px", borderLeft:"4px solid #22c55e", marginBottom:18 }}>
                   {story.text.split("\n\n").map((para,i,arr) => <p key={i} style={{ fontSize:15, lineHeight:1.9, color:"rgba(255,255,255,.88)", marginBottom:i<arr.length-1?14:0, fontWeight:600 }}>{para}</p>)}
                 </div>
-                <Btn onClick={() => setPhase("quiz")} variant="primary" style={{ width:"100%" }}>Svar på spørgsmål 💬</Btn>
+                <Btn onClick={() => { window.speechSynthesis.cancel(); setPhase("quiz"); }} variant="primary" style={{ width:"100%" }}>Svar på spørgsmål 💬</Btn>
               </Card>
             </div>
           ) : (
@@ -586,6 +614,7 @@
     /* ── SPELLING ── */
     function SpellingGame({ content, onComplete }) {
       const words = content.spellingWords;
+      const [queue,    setQueue]    = useState(() => [...words]);
       const [idx,      setIdx]      = useState(0);
       const [input,    setInput]    = useState("");
       const [status,   setStatus]   = useState(null);
@@ -593,39 +622,56 @@
       const [feedback, setFeedback] = useState(null);
       const [attempts, setAttempts] = useState(0);
       const [goals,    setGoals]    = useState(0);
-      const word = words[idx];
+      const mistakesRef = useRef(0);
+      const word = queue[idx];
+
+      const advance = (ns) => {
+        if (idx+1 < queue.length) { setIdx(i=>i+1); setInput(""); setStatus(null); setAttempts(0); }
+        else setTimeout(() => onComplete(ns, mistakesRef.current), 500);
+      };
 
       const check = () => {
-        if (!input.trim()) return;
+        if (!input.trim() || status !== null) return;
         const ok = input.trim().toLowerCase() === word.en.toLowerCase();
-        setStatus(ok ? "correct" : "wrong");
         if (ok) {
-          const pts = attempts===0?20:10, ns=score+pts, ng=goals+1;
-          setScore(ns); setGoals(ng);
+          setStatus("correct");
+          const pts = attempts===0?20:10, ns=score+pts;
+          setScore(ns); setGoals(g=>g+1);
           setFeedback("MÅL! ⚽");
-          setTimeout(() => {
-            setFeedback(null);
-            if (idx+1 < words.length) { setIdx(i=>i+1); setInput(""); setStatus(null); setAttempts(0); }
-            else setTimeout(() => onComplete(ns), 500);
-          }, 1000);
+          speak(word.en);
+          setTimeout(() => { setFeedback(null); advance(ns); }, 1000);
+        } else if (attempts+1 >= 3) {
+          mistakesRef.current += 1;
+          setStatus("reveal");
+          setFeedback("Næste gang! 💪");
+          speak(word.en);
+          setTimeout(() => { setFeedback(null); advance(score); }, 2400);
         } else {
+          mistakesRef.current += 1;
+          setStatus("wrong");
           setAttempts(a=>a+1);
           setFeedback("Prøv igen! 💪");
           setTimeout(() => { setStatus(null); setInput(""); setFeedback(null); }, 1100);
         }
       };
 
+      const skip = () => {
+        if (status !== null || idx+1 >= queue.length) return;
+        setQueue(q => [...q.slice(0,idx), ...q.slice(idx+1), q[idx]]);
+        setInput(""); setAttempts(0);
+      };
+
       return (
         <div style={{ width:"100%" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
             <h2 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:28, letterSpacing:2, color:"#93c5fd" }}>⚽ MÅLSPARK</h2>
-            <div style={{ background:"rgba(59,130,246,.2)", border:"1px solid rgba(59,130,246,.4)", borderRadius:8, padding:"6px 14px", fontWeight:900, fontSize:13, color:"#93c5fd" }}>{idx+1}/{words.length}</div>
+            <div style={{ background:"rgba(59,130,246,.2)", border:"1px solid rgba(59,130,246,.4)", borderRadius:8, padding:"6px 14px", fontWeight:900, fontSize:13, color:"#93c5fd" }}>{idx+1}/{queue.length}</div>
           </div>
           {feedback && <GoalFlash msg={feedback} />}
           <div style={{ display:"flex", gap:6, marginBottom:18, justifyContent:"center" }}>
             {words.map((_,i) => <div key={i} style={{ fontSize:20, filter:i<goals?"none":"grayscale(1) opacity(.3)", transition:"filter .3s" }}>⚽</div>)}
           </div>
-          <div key={idx} style={{ animation:"popIn .35s ease" }}>
+          <div key={word.en} style={{ animation:"popIn .35s ease" }}>
             <Card style={{ textAlign:"center" }}>
               <div style={{ fontSize:70, marginBottom:10, animation:"floatY 2.2s ease-in-out infinite" }}>{word.hint}</div>
               <div style={{ background:"rgba(0,0,0,.5)", borderRadius:12, padding:"14px 20px", marginBottom:20, border:"1px solid rgba(255,255,255,.1)" }}>
@@ -634,8 +680,20 @@
               </div>
               <p style={{ color:"rgba(255,255,255,.55)", fontSize:14, fontWeight:800, marginBottom:14 }}>Hvad er det på engelsk? 🇬🇧</p>
               <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&check()} placeholder="Skriv her..." autoFocus
+                autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="go"
+                onFocus={e=>{ const el=e.currentTarget; setTimeout(() => el.scrollIntoView({ block:"center", behavior:"smooth" }), 250); }}
                 style={{ width:"100%", padding:"15px 20px", borderRadius:12, fontSize:22, fontWeight:900, textAlign:"center", fontFamily:"'Nunito',sans-serif", outline:"none", background:status==="correct"?"rgba(34,197,94,.2)":status==="wrong"?"rgba(239,68,68,.15)":"rgba(255,255,255,.08)", border:`2px solid ${status==="correct"?"#22c55e":status==="wrong"?"#ef4444":"rgba(255,255,255,.2)"}`, color:"white", marginBottom:16, animation:status==="wrong"?"shake .4s":undefined, transition:"border-color .2s, background .2s" }} />
-              <Btn onClick={check} variant="blue" style={{ width:"100%", fontSize:18 }} disabled={!input.trim()||status==="correct"}>Spark! ⚽</Btn>
+              <div style={{ display:"flex", gap:10 }}>
+                <Btn onClick={check} variant="blue" style={{ flex:1, fontSize:18 }} disabled={!input.trim()||status!==null}>Spark! ⚽</Btn>
+                {idx+1 < queue.length && (
+                  <Btn onClick={skip} variant="ghost" style={{ fontSize:14, padding:"13px 18px" }} disabled={status!==null}>Spring over ⏭️</Btn>
+                )}
+              </div>
+              {status==="reveal" && (
+                <div style={{ marginTop:14, background:"rgba(34,197,94,.12)", border:"1px solid rgba(34,197,94,.35)", borderRadius:10, padding:"12px 14px", animation:"popIn .3s ease" }}>
+                  <p style={{ color:"#86efac", fontSize:14, fontWeight:800 }}>Det rigtige ord er: <span style={{ fontFamily:"'Bebas Neue',cursive", fontSize:22, letterSpacing:2, color:"#22c55e" }}>{word.en}</span> 🔊</p>
+                </div>
+              )}
               {attempts>0 && status===null && (
                 <div style={{ marginTop:14, background:"rgba(251,191,36,.1)", border:"1px solid rgba(251,191,36,.25)", borderRadius:10, padding:"10px 14px" }}>
                   <p style={{ color:"#fcd34d", fontSize:13, fontWeight:800 }}>💡 Hint: Starter med "{word.en[0].toUpperCase()}" — {word.en.length} bogstaver</p>
@@ -663,10 +721,11 @@
         const correct = opt === current.missing;
         const ns = score + (correct?1:0);
         setFeedback(correct ? "MÅL! ⚽" : "Prøv igen! 💪");
+        if (correct) speak(current.sentence.replace("___", current.missing));
         setTimeout(() => {
           setFeedback(null);
           if (idx+1 < sentences.length) { setIdx(i=>i+1); setAnswered(null); if(correct) setScore(ns); }
-          else { if(correct) setScore(ns); setTimeout(() => onComplete(ns*25), 600); }
+          else { if(correct) setScore(ns); setTimeout(() => onComplete(ns*25, sentences.length - ns), 600); }
         }, 1400);
       };
 
@@ -723,7 +782,7 @@
         setTimeout(() => {
           setFeedback(null);
           if (idx+1 < questions.length) { setIdx(i=>i+1); setAnswered(null); if(correct) setScore(ns); }
-          else { if(correct) setScore(ns); setTimeout(() => onComplete(ns*18), 600); }
+          else { if(correct) setScore(ns); setTimeout(() => onComplete(ns*18, questions.length - ns), 600); }
         }, 1400);
       };
 
@@ -771,7 +830,7 @@
           <div style={{ fontSize:88, animation:"floatY 2s ease-in-out infinite", marginBottom:12 }}>
             {hasNext ? "⚽" : "🏆"}
           </div>
-          <h1 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:52, letterSpacing:3, background:"linear-gradient(135deg,#fbbf24,#f97316,#22c55e)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:8 }}>
+          <h1 className="win-title" style={{ fontFamily:"'Bebas Neue',cursive", letterSpacing:3, background:"linear-gradient(135deg,#fbbf24,#f97316,#22c55e)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:8 }}>
             {hasNext ? `KAMP ${kamp} VUNDET!` : "NIVEAU GENNEMFØRT!"}
           </h1>
           <p style={{ color:"rgba(255,255,255,.65)", fontSize:17, fontWeight:800, marginBottom:28 }}>
@@ -806,18 +865,22 @@
       const [level,     setLevel]     = useState(saved.level     ?? 1);
       const [kamp,      setKamp]      = useState(saved.kamp      ?? 1);
       const [xp,        setXp]        = useState(saved.xp        ?? 0);
-      const [completed, setCompleted] = useState(new Set(saved.completed ?? []));
+      const [completed, setCompleted] = useState(() => {
+        const c = saved.completed;
+        if (Array.isArray(c)) return Object.fromEntries(c.map(id => [id, 1]));
+        return c ?? {};
+      });
 
       useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ level, kamp, xp, completed:[...completed] }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ level, kamp, xp, completed }));
       }, [level, kamp, xp, completed]);
 
-      const handleComplete = useCallback((game, earned) => {
+      const handleComplete = useCallback((game, earned, mistakes) => {
         const newXp = xp + earned;
         setXp(newXp);
-        const newCompleted = new Set([...completed, game]);
+        const newCompleted = { ...completed, [game]: starsFor(mistakes ?? 0) };
         setCompleted(newCompleted);
-        if (newCompleted.size === GAMES.length) {
+        if (Object.keys(newCompleted).length === GAMES.length) {
           setScreen("kampvundet");
         } else {
           setScreen("map");
@@ -826,7 +889,7 @@
 
       const handleNextKamp = () => {
         setKamp(k => k + 1);
-        setCompleted(new Set());
+        setCompleted({});
         setScreen("map");
       };
 
@@ -834,7 +897,7 @@
         setLevel(n);
         setKamp(1);
         setXp(0);
-        setCompleted(new Set());
+        setCompleted({});
       };
 
       const handleHome = () => setScreen("home");
@@ -845,9 +908,9 @@
       const gameScreens = ["wordmatch","story","spelling","fillin","truefalse"];
 
       return (
-        <div style={{ minHeight:"100vh", background:"linear-gradient(160deg,#040f04 0%,#071a07 40%,#0d2b0d 100%)", fontFamily:"'Nunito',sans-serif", color:"white", position:"relative", overflowX:"hidden" }}>
+        <div className="app-shell" style={{ background:"linear-gradient(160deg,#040f04 0%,#071a07 40%,#0d2b0d 100%)", fontFamily:"'Nunito',sans-serif", color:"white", position:"relative", overflowX:"hidden" }}>
           <StadiumBg />
-          <div style={{ position:"relative", zIndex:1, maxWidth:560, margin:"0 auto", padding:"28px 18px", minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+          <div className="app-inner" style={{ position:"relative", zIndex:1, maxWidth:560, margin:"0 auto", padding:"28px 18px" }}>
 
             {screen === "home" && <HomeScreen onStart={() => setScreen("map")} level={level} onChangeLevel={handleChangeLevel} />}
 
@@ -858,13 +921,13 @@
             {gameScreens.includes(screen) && (
               <div style={{ width:"100%" }}>
                 <XPBar xp={xp} />
-                {screen==="wordmatch"  && <WordMatchGame  content={content} onComplete={e => handleComplete("wordmatch", e)} />}
-                {screen==="story"      && <StoryGame      content={content} onComplete={e => handleComplete("story",     e)} />}
-                {screen==="spelling"   && <SpellingGame   content={content} onComplete={e => handleComplete("spelling",  e)} />}
-                {screen==="fillin"     && <FillInGame     content={content} onComplete={e => handleComplete("fillin",    e)} />}
-                {screen==="truefalse"  && <TrueFalseGame  content={content} onComplete={e => handleComplete("truefalse", e)} />}
+                {screen==="wordmatch"  && <WordMatchGame  content={content} onComplete={(e,m) => handleComplete("wordmatch", e, m)} />}
+                {screen==="story"      && <StoryGame      content={content} onComplete={(e,m) => handleComplete("story",     e, m)} />}
+                {screen==="spelling"   && <SpellingGame   content={content} onComplete={(e,m) => handleComplete("spelling",  e, m)} />}
+                {screen==="fillin"     && <FillInGame     content={content} onComplete={(e,m) => handleComplete("fillin",    e, m)} />}
+                {screen==="truefalse"  && <TrueFalseGame  content={content} onComplete={(e,m) => handleComplete("truefalse", e, m)} />}
                 <div style={{ marginTop:20 }}>
-                  <Btn onClick={() => setScreen("map")} variant="ghost" style={{ fontSize:14, padding:"10px 20px" }}>← Tilbage til banen</Btn>
+                  <Btn onClick={() => { window.speechSynthesis.cancel(); setScreen("map"); }} variant="ghost" style={{ fontSize:14, padding:"10px 20px" }}>← Tilbage til banen</Btn>
                 </div>
               </div>
             )}
