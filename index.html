@@ -15,6 +15,7 @@
     .home-title { font-size: clamp(42px, 13vw, 62px); }
     .win-title  { font-size: clamp(36px, 11vw, 52px); }
     .goal-flash { font-size: clamp(36px, 12vw, 72px); }
+    .info-modal { max-height: 85vh; max-height: 85dvh; }
     @media (max-width: 600px) {
       /* Top-justeret på mobil, så tastaturet ikke skubber layoutet rundt */
       .app-inner { justify-content: flex-start; padding-top: 16px; }
@@ -34,12 +35,14 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="version.js"></script>
   <script type="text/babel">
     const { useState, useEffect, useCallback, useRef } = React;
 
     const CONFETTI_COLORS = ["#22c55e","#fbbf24","#ef4444","#3b82f6","#ffffff","#f97316","#8b5cf6"];
     const LIGHTS = [{ left:"-8%",top:"-8%",size:500 },{ left:"108%",top:"-8%",size:500 },{ left:"50%",top:"-5%",size:400 }];
     const STORAGE_KEY = "fodboldEngelsk";
+    // VERSION_HISTORY og CURRENT_VERSION kommer fra version.js
 
     const GAMES = [
       { id:"wordmatch", name:"Ord-Aflevering",   desc:"Match dansk og engelsk!",      emoji:"🔤", bg:"linear-gradient(135deg,#15803d,#16a34a)", xp:80  },
@@ -387,8 +390,42 @@
       );
     }
 
+    /* ── INFO MODAL ── */
+    function InfoModal({ onClose }) {
+      return (
+        <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.75)", backdropFilter:"blur(4px)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:18 }}>
+          <div className="info-modal" onClick={e=>e.stopPropagation()} style={{ width:"100%", maxWidth:440, overflowY:"auto", background:"#0a1f0a", border:"1px solid rgba(255,255,255,.15)", borderRadius:20, padding:"24px 22px", animation:"popIn .3s ease" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
+              <h2 style={{ fontFamily:"'Bebas Neue',cursive", fontSize:28, letterSpacing:2, color:"#fbbf24" }}>ℹ️ Om appen</h2>
+              <button onClick={onClose} style={{ background:"rgba(255,255,255,.08)", border:"1px solid rgba(255,255,255,.2)", borderRadius:10, width:34, height:34, color:"white", fontSize:16, fontWeight:900, cursor:"pointer" }}>✕</button>
+            </div>
+            <div style={{ background:"rgba(34,197,94,.12)", border:"1px solid rgba(34,197,94,.35)", borderRadius:12, padding:"12px 16px", marginBottom:18 }}>
+              <div style={{ fontSize:11, fontWeight:900, color:"rgba(255,255,255,.45)", textTransform:"uppercase", letterSpacing:1.5, marginBottom:3 }}>Nuværende version</div>
+              <div style={{ fontFamily:"'Bebas Neue',cursive", fontSize:30, letterSpacing:2, color:"#22c55e" }}>v{CURRENT_VERSION.v}</div>
+              <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,.6)" }}>🕐 {CURRENT_VERSION.date}</div>
+            </div>
+            <div style={{ fontSize:12, fontWeight:900, color:"rgba(255,255,255,.45)", textTransform:"uppercase", letterSpacing:1.5, marginBottom:10 }}>📜 Versionshistorik</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {VERSION_HISTORY.map(ver => (
+                <div key={ver.v} style={{ background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.1)", borderRadius:12, padding:"10px 14px" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:5 }}>
+                    <span style={{ fontFamily:"'Bebas Neue',cursive", fontSize:19, letterSpacing:1.5, color:ver.v===CURRENT_VERSION.v?"#22c55e":"rgba(255,255,255,.8)" }}>v{ver.v}</span>
+                    <span style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,.4)" }}>{ver.date}</span>
+                  </div>
+                  <ul style={{ listStyle:"none" }}>
+                    {ver.notes.map((n,i) => <li key={i} style={{ fontSize:13, fontWeight:600, color:"rgba(255,255,255,.65)", lineHeight:1.6, paddingLeft:14, position:"relative" }}><span style={{ position:"absolute", left:0, color:"#22c55e" }}>•</span>{n}</li>)}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     /* ── HOME SCREEN ── */
     function HomeScreen({ onStart, level, onChangeLevel }) {
+      const [showInfo, setShowInfo] = useState(false);
       return (
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:24, textAlign:"center" }}>
           <div style={{ fontSize:96, lineHeight:1, animation:"floatY 2.5s ease-in-out infinite" }}>⚽</div>
@@ -429,6 +466,12 @@
               })}
             </div>
           </div>
+
+          <button onClick={() => setShowInfo(true)}
+            style={{ background:"none", border:"none", color:"rgba(255,255,255,.35)", cursor:"pointer", fontSize:12, fontWeight:800, fontFamily:"'Nunito',sans-serif", padding:"6px 12px" }}>
+            ℹ️ Version {CURRENT_VERSION.v} — {CURRENT_VERSION.date}
+          </button>
+          {showInfo && <InfoModal onClose={() => setShowInfo(false)} />}
         </div>
       );
     }
