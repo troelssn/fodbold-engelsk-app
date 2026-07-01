@@ -4,6 +4,10 @@
    Forsiden og info-modalen i index.html opdaterer sig selv.
 ══════════════════════════════════════════════ */
 const VERSION_HISTORY = [
+  { v:"2.3", date:"12. juni 2026 kl. 11:00", notes:[
+    "Daglig udfordring på forsiden — ét nyt ord om dagen med 🔥-streak og +30 pts",
+    "Tredje kamp tilføjet på alle tre niveauer (18 nye ord, 3 historier, nye stave-, udfyld- og sandt/falsk-opgaver)",
+  ]},
   { v:"2.2", date:"12. juni 2026 kl. 10:30", notes:[
     "Versionshistorik flyttet til særskilt fil (version.js)",
   ]},

@@ -1,14 +1,14 @@
 # Suggestions to Future Improvement
 
 ## Indhold og læring
-- Flere ord og historier per niveau — lige nu er der kun ét sæt, så det bliver hurtigt kedeligt ved genspil
+- ~~Flere ord og historier per niveau — lige nu er der kun ét sæt, så det bliver hurtigt kedeligt ved genspil~~ ✅ Implementeret (tredje kamp på alle niveauer — 18 nye ord og 3 nye historier)
 - ~~Lyd — udtale af de engelske ord når man matcher dem rigtigt~~ ✅ Implementeret (Web Speech API — udtale ved rigtige svar + oplæsning af historier)
 - ~~Flere spiltyper, fx udfyld-det-manglende-ord i en sætning~~ ✅ Implementeret
 
 ## Progression og motivation
 - ~~Gem fremskridt i `localStorage` så XP og niveau huskes mellem sessioner~~ ✅ Implementeret
 - ~~Stjerne-rating per spil (1–3 stjerner baseret på fejl/hastighed)~~ ✅ Implementeret (baseret på fejl: 0 fejl = ⭐⭐⭐, 1–2 = ⭐⭐, flere = ⭐)
-- Daglig udfordring — ét nyt ord om dagen
+- ~~Daglig udfordring — ét nyt ord om dagen~~ ✅ Implementeret (dagens ord på forsiden med streak-tæller og +30 pts)
 
 ## Brugervenlighed
 - ~~Mobiloptimering — tastaturet på mobil skubber layoutet rundt i stavningsspillet~~ ✅ Implementeret (dvh-højder, top-justeret layout på mobil, `interactive-widget=resizes-visual`, scroll-til-input ved fokus, responsive overskrifter)
